@@ -256,6 +256,18 @@ h2 {
   padding: clamp(24px, 4vw, 42px) 0 0;
 }
 
+.mode-status {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(123, 199, 186, 0.38);
+  border-radius: 8px;
+  background: rgba(239, 251, 248, 0.9);
+  color: #2f766c;
+  font-weight: 850;
+  line-height: 1.45;
+  box-shadow: 0 10px 24px rgba(133, 78, 103, 0.08);
+}
+
 .section-heading,
 .gallery-topbar {
   display: flex;

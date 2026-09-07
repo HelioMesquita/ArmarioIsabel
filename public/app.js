@@ -10,10 +10,12 @@ const galleryTitle = document.querySelector("#galleryTitle");
 const galleryCount = document.querySelector("#galleryCount");
 const fileInput = document.querySelector("#fileInput");
 const uploadStatus = document.querySelector("#uploadStatus");
+const addPhotoControl = fileInput.closest(".add-button");
 const homePhotoCard = document.querySelector("#homePhotoCard");
 const homePhoto = document.querySelector("#homePhoto");
 const homePhotoLabel = document.querySelector("#homePhotoLabel");
 const installButton = document.querySelector("#installButton");
+const modeStatus = document.querySelector("#modeStatus");
 const reportView = document.querySelector("#reportView");
 const reportIntro = document.querySelector("#reportIntro");
 const reportStats = document.querySelector("#reportStats");
@@ -35,6 +37,14 @@ let currentImages = [];
 let currentImageIndex = 0;
 let deferredInstallPrompt = null;
 let detailVisible = false;
+let catalogCache = null;
+let appConfig = {
+  mode: "local",
+  dataSource: "api",
+  readOnly: false,
+  apiBaseUrl: "",
+  catalogUrl: "catalog.json",
+};
 
 function formatCount(count) {
   if (count === 0) return "Nenhuma foto";
@@ -63,6 +73,52 @@ function escapeHtml(value) {
   });
 }
 
+function assetUrl(path) {
+  return new URL(path, document.baseURI).toString();
+}
+
+function isStaticMode() {
+  return appConfig.dataSource === "catalog" || appConfig.mode === "static";
+}
+
+function isReadOnlyMode() {
+  return Boolean(appConfig.readOnly) || isStaticMode();
+}
+
+function apiUrl(path) {
+  return `${appConfig.apiBaseUrl || ""}${path}`;
+}
+
+function applyAppMode() {
+  document.body.dataset.appMode = appConfig.mode || "local";
+
+  if (addPhotoControl) {
+    addPhotoControl.hidden = isReadOnlyMode();
+  }
+
+  if (!modeStatus) return;
+  if (isReadOnlyMode()) {
+    modeStatus.textContent =
+      "Versao online: somente visualizacao. Para adicionar ou renomear, use o app local no Docker.";
+    modeStatus.hidden = false;
+  } else {
+    modeStatus.hidden = true;
+  }
+}
+
+async function loadAppConfig() {
+  try {
+    const response = await fetch(assetUrl("app-config.json"));
+    if (!response.ok) return;
+    const config = await response.json();
+    appConfig = { ...appConfig, ...config };
+  } catch (error) {
+    appConfig = { ...appConfig, mode: "local", dataSource: "api", readOnly: false };
+  } finally {
+    applyAppMode();
+  }
+}
+
 async function requestJson(url, options) {
   const response = await fetch(url, options);
   const payload = await response.json().catch(() => ({}));
@@ -70,6 +126,35 @@ async function requestJson(url, options) {
     throw new Error(payload.error || "Nao consegui carregar agora.");
   }
   return payload;
+}
+
+async function requestApiJson(path, options) {
+  return requestJson(apiUrl(path), options);
+}
+
+async function loadCatalog() {
+  if (catalogCache) return catalogCache;
+  catalogCache = await requestJson(assetUrl(appConfig.catalogUrl || "catalog.json"));
+  return catalogCache;
+}
+
+async function loadStaticFolders() {
+  const catalog = await loadCatalog();
+  return (catalog.folders || []).map((folder) => ({
+    name: folder.name,
+    count: folder.count,
+    preview: folder.preview,
+  }));
+}
+
+async function loadStaticFolder(folderName) {
+  const catalog = await loadCatalog();
+  return (catalog.folders || []).find((folder) => folder.name === folderName);
+}
+
+function showReadOnlyMessage() {
+  uploadStatus.textContent =
+    "Versao online: edicoes ficam disponiveis apenas no app local do Docker.";
 }
 
 function isStandaloneMode() {
@@ -114,15 +199,16 @@ function registerServiceWorker() {
   if (!("serviceWorker" in navigator) || !window.isSecureContext) return;
 
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }
 
 async function loadFolders() {
   setLoading(folderGrid, "Carregando pastinhas...");
   try {
-    const payload = await requestJson("/api/folders");
-    const folders = payload.folders || [];
+    const folders = isStaticMode()
+      ? await loadStaticFolders()
+      : (await requestApiJson("/api/folders")).folders || [];
     renderHomePhoto(folders);
     renderFolders(folders);
   } catch (error) {
@@ -200,7 +286,10 @@ async function openFolder(folderName, options = {}) {
   setLoading(imageGrid, "Abrindo as roupinhas...");
 
   try {
-    const payload = await requestJson(`/api/folders/${encodeURIComponent(folderName)}`);
+    const payload = isStaticMode()
+      ? await loadStaticFolder(folderName)
+      : await requestApiJson(`/api/folders/${encodeURIComponent(folderName)}`);
+    if (!payload) throw new Error("Pasta nao encontrada.");
     currentImages = payload.images || [];
     renderImages();
     history.replaceState(null, "", `#${encodeURIComponent(folderName)}`);
@@ -228,11 +317,15 @@ function renderImages() {
             <img src="${url}" alt="${label}" loading="lazy" />
             <span>${label}</span>
           </button>
-          <div class="card-actions">
-            <button class="rename-button" type="button" data-rename-index="${index}">
-              Renomear
-            </button>
-          </div>
+          ${
+            isReadOnlyMode()
+              ? ""
+              : `<div class="card-actions">
+                  <button class="rename-button" type="button" data-rename-index="${index}">
+                    Renomear
+                  </button>
+                </div>`
+          }
         </article>
       `;
       },
@@ -247,13 +340,18 @@ function backHome() {
 async function uploadSelectedFile() {
   const file = fileInput.files[0];
   if (!file || !currentFolder) return;
+  if (isReadOnlyMode()) {
+    fileInput.value = "";
+    showReadOnlyMessage();
+    return;
+  }
 
   uploadStatus.textContent = "Enviando foto...";
   const formData = new FormData();
   formData.append("image", file);
 
   try {
-    await requestJson(`/api/folders/${encodeURIComponent(currentFolder)}/upload`, {
+    await requestApiJson(`/api/folders/${encodeURIComponent(currentFolder)}/upload`, {
       method: "POST",
       body: formData,
     });
@@ -283,8 +381,10 @@ async function openReport() {
   detailTable.innerHTML = "";
 
   try {
-    const report = await requestJson("/api/report");
-    renderReport(report);
+    const report = isStaticMode()
+      ? (await loadCatalog()).report
+      : await requestApiJson("/api/report");
+    renderReport(report || {});
   } catch (error) {
     reportIntro.textContent = error.message;
   }
@@ -390,6 +490,10 @@ function renderReport(report) {
 async function renameImage(index) {
   const image = currentImages[index];
   if (!image || !currentFolder) return;
+  if (isReadOnlyMode()) {
+    showReadOnlyMessage();
+    return;
+  }
 
   const currentLabel = image.label || friendlyName(image.name);
   const requestedName = prompt("Novo nome da foto:", currentLabel);
@@ -403,7 +507,7 @@ async function renameImage(index) {
 
   uploadStatus.textContent = "Renomeando foto...";
   try {
-    await requestJson(`/api/folders/${encodeURIComponent(currentFolder)}/rename`, {
+    await requestApiJson(`/api/folders/${encodeURIComponent(currentFolder)}/rename`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -488,13 +592,17 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "ArrowRight") moveLightbox(1);
 });
 
-setupPwaInstall();
-registerServiceWorker();
-loadFolders().then(() => {
+async function startApp() {
+  await loadAppConfig();
+  await loadFolders();
   const initialHash = decodeURIComponent(location.hash.replace(/^#/, ""));
   if (initialHash === "relatorio") {
     openReport();
     return;
   }
   if (initialHash) openFolder(initialHash);
-});
+}
+
+setupPwaInstall();
+registerServiceWorker();
+startApp();

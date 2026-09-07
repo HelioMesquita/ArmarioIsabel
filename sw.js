@@ -1,3 +1,19 @@
+self.ARMARIO_CACHE_NAME = "armario-isabel-static-4b096ae9a5ab";
+self.ARMARIO_APP_ASSETS = [
+  "./",
+  "./index.html",
+  "./public/app.js",
+  "./public/styles.css",
+  "./app-config.json",
+  "./manifest.webmanifest",
+  "./public/icons/icon.svg",
+  "./public/icons/icon-180.png",
+  "./public/icons/icon-192.png",
+  "./public/icons/icon-512.png"
+];
+self.ARMARIO_EXTRA_PRECACHE = [
+  "./catalog.json"
+];
 const CACHE_NAME = self.ARMARIO_CACHE_NAME || "armario-isabel-v3";
 const APP_ROOT = new URL("./", self.location.href).toString();
 const DEFAULT_APP_ASSETS = [

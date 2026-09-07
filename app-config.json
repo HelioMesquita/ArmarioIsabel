@@ -1,0 +1,8 @@
+{
+  "mode": "static",
+  "dataSource": "catalog",
+  "readOnly": true,
+  "apiBaseUrl": "",
+  "catalogUrl": "catalog.json",
+  "generatedAt": "2026-09-07T22:37:32.048584+00:00"
+}

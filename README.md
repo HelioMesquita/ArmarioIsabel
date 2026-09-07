@@ -2,6 +2,11 @@
 
 Site local para navegar pelas pastinhas de `Roupinhas`, ampliar fotos e adicionar novas imagens pelo celular ou computador.
 
+O projeto tem dois modos:
+
+- Docker local: versao completa, com API, upload e renomear.
+- GitHub Pages: versao estatica, somente leitura, gerada a partir das fotos e CSVs commitados.
+
 ## Rodar com Docker
 
 ```bash
@@ -28,6 +33,44 @@ O projeto ja tem manifest, icones e service worker para funcionar como PWA.
 - No iPhone/Safari, abra o site, toque em compartilhar e escolha `Adicionar a Tela de Inicio`.
 - Para PWA completo acessando por `http://SEU-IP:8080`, o celular pode exigir HTTPS. Sem HTTPS, alguns navegadores deixam criar apenas um atalho na tela inicial.
 
+## Publicar no GitHub Pages
+
+A publicacao usa a raiz do repositorio como site estatico. A cada push em `main` ou `master`, o GitHub Pages publica uma nova versao.
+
+Antes do primeiro deploy, no GitHub, abra `Settings` > `Pages` e configure:
+
+- Source: `Deploy from a branch`
+- Branch: `main` ou `master`
+- Folder: `/ (root)`
+
+Importante: se o GitHub Pages abrir este README, a fonte esta apontando para uma pasta sem `index.html`. Use `/ (root)`, porque o script abaixo gera `index.html`, `catalog.json`, `app-config.json`, `manifest.webmanifest` e `sw.js` na raiz.
+
+Sempre que mudar fotos, nomes ou CSVs, gere a versao estatica antes do commit:
+
+```bash
+python3 scripts/export_static.py
+```
+
+Para testar a versao estatica gerada:
+
+```bash
+python3 -m http.server 8081
+```
+
+Depois abra:
+
+```text
+http://localhost:8081
+```
+
+Se quiser que o service worker tente salvar todas as imagens no cache offline durante a instalacao, gere com:
+
+```bash
+python3 scripts/export_static.py --precache-images
+```
+
+Sem essa opcao, o GitHub Pages salva o app e o catalogo para abrir offline, e as imagens vao sendo cacheadas conforme forem abertas no navegador.
+
 ## Como funciona
 
 - Cada subpasta dentro de `Roupinhas` vira um botao na pagina inicial.
@@ -38,6 +81,7 @@ O projeto ja tem manifest, icones e service worker para funcionar como PWA.
 - Todo upload ganha um nome com data e hora atuais, por exemplo `2026-09-06_17-40-12-123456_foto.jpeg`, para evitar nomes duplicados.
 - O botao `Relatorio` abre um resumo do armario e permite alternar para a tabela detalhada.
 - O Docker monta `./Roupinhas` como volume, entao os uploads entram direto nas pastas locais do projeto.
+- Na versao estatica do GitHub Pages, `Adicionar foto` e `Renomear` ficam desativados porque nao existe servidor Python rodando.
 
 ## Pastas
 
