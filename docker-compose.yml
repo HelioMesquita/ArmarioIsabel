@@ -1,0 +1,13 @@
+services:
+  armario-isabel:
+    build: .
+    container_name: armario-isabel
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Roupinhas:/app/Roupinhas
+    environment:
+      PORT: "8080"
+      WARDROBE_DIR: /app/Roupinhas
+      TZ: America/Sao_Paulo
+    restart: unless-stopped

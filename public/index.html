@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>O Armario da Isabel</title>
+    <meta
+      name="description"
+      content="Um armario local para ver e adicionar as roupinhas da Isabel."
+    />
+    <meta name="theme-color" content="#f48aae" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="O Armario da Isabel" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Roupinhas organizadas com carinho</p>
+          <h1>O Armario da Isabel</h1>
+          <p class="hero-text">
+            Escolha uma pastinha para passear pelas fotos, abrir cada detalhe e
+            adicionar novas pecas direto daqui.
+          </p>
+          <div class="hero-actions">
+            <button id="reportButton" class="install-button" type="button">
+              Relatorio
+            </button>
+            <button id="installButton" class="install-button secondary-action" type="button">
+              Instalar app
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-window">
+          <div class="closet-rail"></div>
+          <div class="hanger hanger-one">
+            <span></span>
+          </div>
+          <div class="hanger hanger-two">
+            <span></span>
+          </div>
+          <div class="hanger hanger-three">
+            <span></span>
+          </div>
+          <div id="homePhotoCard" class="home-photo-card" hidden>
+            <img id="homePhoto" alt="" />
+            <p id="homePhotoLabel"></p>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <section id="homeView" class="view-section">
+          <div class="section-heading">
+            <div>
+              <p class="kicker">Pastinhas</p>
+              <h2>Escolha uma fase</h2>
+            </div>
+            <button id="refreshFolders" class="soft-button" type="button">
+              Atualizar
+            </button>
+          </div>
+          <div id="folderGrid" class="folder-grid" aria-live="polite"></div>
+        </section>
+
+        <section id="galleryView" class="view-section gallery-section" hidden>
+          <div class="gallery-topbar">
+            <button id="backButton" class="soft-button" type="button">
+              Voltar
+            </button>
+            <div>
+              <p class="kicker">Pastinha</p>
+              <h2 id="galleryTitle"></h2>
+              <p id="galleryCount" class="muted"></p>
+            </div>
+            <label class="add-button">
+              Adicionar foto
+              <input id="fileInput" type="file" accept="image/*" />
+            </label>
+          </div>
+
+          <p id="uploadStatus" class="status-message" role="status"></p>
+          <div id="imageGrid" class="image-grid" aria-live="polite"></div>
+        </section>
+
+        <section id="reportView" class="view-section report-section" hidden>
+          <div class="gallery-topbar">
+            <button id="reportBackButton" class="soft-button" type="button">
+              Voltar
+            </button>
+            <div>
+              <p class="kicker">Relatorio</p>
+              <h2>Resumo do armario</h2>
+              <p id="reportIntro" class="muted"></p>
+            </div>
+            <button id="detailToggleButton" class="add-button" type="button">
+              Ver detalhado
+            </button>
+          </div>
+
+          <div id="reportStats" class="report-stats" aria-live="polite"></div>
+
+          <div class="report-layout">
+            <section class="report-panel">
+              <div class="report-panel-heading">
+                <h3>Por tamanho</h3>
+              </div>
+              <div id="sizeReport" class="mini-bars"></div>
+            </section>
+
+            <section class="report-panel">
+              <div class="report-panel-heading">
+                <h3>Por grupo</h3>
+              </div>
+              <div id="groupReport" class="mini-bars"></div>
+            </section>
+          </div>
+
+          <section class="report-panel">
+            <div class="report-panel-heading">
+              <h3>Resumo</h3>
+            </div>
+            <div class="table-wrap">
+              <table id="summaryTable"></table>
+            </div>
+          </section>
+
+          <section id="detailPanel" class="report-panel detail-panel" hidden>
+            <div class="report-panel-heading">
+              <h3>Detalhado</h3>
+            </div>
+            <div class="table-wrap">
+              <table id="detailTable"></table>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div id="lightbox" class="lightbox" hidden>
+      <div class="lightbox-bar">
+        <button id="prevImage" class="ghost-button" type="button">
+          Anterior
+        </button>
+        <p id="lightboxCaption"></p>
+        <button id="nextImage" class="ghost-button" type="button">
+          Proxima
+        </button>
+        <button id="closeLightbox" class="close-button" type="button">
+          Fechar
+        </button>
+      </div>
+      <img id="lightboxImage" alt="" />
+    </div>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+tamanho_pasta;grupo;tipo_classificacao;quantidade
+0-3;Acessório;Touca;1
+0-3;Body;Body Manga Curta;8
+0-3;Body;Body Manga Longa;8
+0-3;Body;Body Sem Manga;6
+0-3;Calça;Calça;2
+0-3;Conjunto;Conjunto 2 Bodies Manga Curta e Calça;1
+0-3;Conjunto;Conjunto 2 Bodies Manga Longa e Calça;1
+0-3;Conjunto;Conjunto Body Manga Curta e Calça;1
+0-3;Conjunto;Conjunto Body Manga Curta, Casaco com Capuz e Calça;1
+0-3;Conjunto;Conjunto Body Manga Longa e Calça;1
+0-3;Conjunto;Conjunto Body e Shorts;1
+0-3;Conjunto;Conjunto Moletom;1
+0-3;Conjunto;Conjunto Vestido e Tapa-Fralda;1
+0-3;Conjunto;Conjunto de Meias;1
+0-3;Macacão;Macacão Inverno com Pezinho;2
+0-3;Macacão;Macacão com Pezinho;8
+0-3;Macaquinho/Jardineira;Macaquinho Curto Sem Manga;1
+0-3;Meia;Meia com Babado;1
+0-3;Vestido;Vestido Body Sem Manga;1
+0-3;Vestido;Vestido Manga Curta;1
+0-3;Vestido;Vestido Manga Longa;1
+3-6;Body;Body Manga Curta;15
+3-6;Body;Body Manga Longa;4
+3-6;Calçado;Tênis/Sapatinho;1
+3-6;Conjunto;Conjunto Body Manga Curta, Blusa com Capuz e Calça;1
+3-6;Conjunto;Conjunto Body Manga Longa e Calça;4
+3-6;Conjunto;Conjunto Casaco, Calça e Sapatinho de Linha;1
+3-6;Conjunto;Conjunto Macacão, Body e Babador;1
+3-6;Conjunto;Conjunto Vestido e Body Manga Longa;1
+3-6;Frio/Linha;Casaco/Cardigã de Linha;1
+3-6;Frio/Linha;Casaco/Jaqueta de Frio;1
+3-6;Macacão;Macacão Inverno com Pezinho;1
+3-6;Macaquinho/Jardineira;Macaquinho Curto Manga Curta;4
+3-6;Macaquinho/Jardineira;Macaquinho Curto Sem Manga;1
+6-9;Body;Body Manga Curta;5
+6-9;Conjunto;Conjunto Blusa Manga Longa e Calça;1
+6-9;Conjunto;Conjunto Vestido e Body Manga Longa;1
+6-9;Conjunto;Conjunto Vestido, Tapa-Fralda e Faixa;1
+6-9;Vestido;Vestido Manga Longa;1
+9-12;Body;Body Manga Curta;2
+9-12;Conjunto;Conjunto Moletom;1
+9-12;Conjunto;Conjunto Vestido, Blusa e Faixa;1
+RN;Body;Body Manga Curta;11
+RN;Body;Body Manga Longa;9
+RN;Calçado;Sapatinho de Linha;1
+RN;Conjunto;Conjunto de Meias;1
+RN;Frio/Linha;Blusa de Frio de Linha;1
+RN;Frio/Linha;Casaco/Cardigã de Linha;2
+RN;Macacão;Macacão com Pezinho;9
+Sem Idade;Acessório;Faixa de Cabelo;3
+Sem Idade;Calçado;Meia/Sapatinho Antiderrapante;4
+Sem Idade;Conjunto;Conjunto Babadores Bandana;1
+Sem Idade;Conjunto;Conjunto Faixas de Cabelo;3
+Sem Idade;Conjunto;Conjunto Manta e Naninha;1
+Sem Idade;Conjunto;Conjunto Paninhos de Boca, Paninhos de Ombro e Cueiros;1
+Sem Idade;Conjunto;Conjunto Pano de Boca e Babinha;1
+Sem Idade;Enxoval/Banho;Cueiro;1
+Sem Idade;Enxoval/Banho;Roupão com Capuz;1
+Sem Idade;Enxoval/Banho;Toalha com Capuz;3
+Sem Idade;Meia;Meia Longa;4
+Sem Idade;Sono/Enxoval;Jogo de Lençol;1
+Sem Idade;Sono/Enxoval;Manta Inverno;1
+Sem Idade;Sono/Enxoval;Manta Soft;1
+Sem Idade;Sono/Enxoval;Saco de Dormir;2
