@@ -59,6 +59,8 @@ python3 scripts/publish_static.py
 Esse script pega o que esta em `project/public/`, gera os arquivos da raiz e injeta
 `window.ARMARIO_APP_CONFIG` no `index.html` publicado. Essa variavel coloca o site
 em modo estatico, usa `catalog.json` como fonte de dados e desliga upload/renomear.
+Ele tambem gera icones proprios da versao online em `icons/web-icon-*`, para o PWA
+instalado pelo GitHub Pages ficar diferente do app local.
 
 O comando antigo continua funcionando como atalho:
 

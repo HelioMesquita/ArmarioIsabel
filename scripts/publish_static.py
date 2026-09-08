@@ -7,7 +7,9 @@ import hashlib
 import json
 import os
 import shutil
+import struct
 import sys
+import zlib
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -24,6 +26,8 @@ IMAGE_EXTENSIONS = {
     ".png",
     ".webp",
 }
+
+WEB_ICON_SIZES = (180, 192, 512)
 
 
 def is_image(path):
@@ -129,6 +133,151 @@ def write_json(path, payload):
     )
 
 
+def color(hex_color, alpha=255):
+    hex_color = hex_color.lstrip("#")
+    return (
+        int(hex_color[0:2], 16),
+        int(hex_color[2:4], 16),
+        int(hex_color[4:6], 16),
+        alpha,
+    )
+
+
+def in_rounded_rect(x, y, left, top, right, bottom, radius):
+    if left + radius <= x < right - radius or top + radius <= y < bottom - radius:
+        return left <= x < right and top <= y < bottom
+
+    corner_x = left + radius if x < left + radius else right - radius - 1
+    corner_y = top + radius if y < top + radius else bottom - radius - 1
+    return (x - corner_x) ** 2 + (y - corner_y) ** 2 <= radius**2
+
+
+def paint_pixel(pixels, size, x, y, rgba):
+    if 0 <= x < size and 0 <= y < size:
+        offset = (y * size + x) * 4
+        pixels[offset : offset + 4] = bytes(rgba)
+
+
+def draw_rect(pixels, size, left, top, right, bottom, rgba):
+    for y in range(max(0, top), min(size, bottom)):
+        for x in range(max(0, left), min(size, right)):
+            paint_pixel(pixels, size, x, y, rgba)
+
+
+def draw_rounded_rect(pixels, size, left, top, right, bottom, radius, rgba):
+    for y in range(max(0, top), min(size, bottom)):
+        for x in range(max(0, left), min(size, right)):
+            if in_rounded_rect(x, y, left, top, right, bottom, radius):
+                paint_pixel(pixels, size, x, y, rgba)
+
+
+def draw_circle(pixels, size, center_x, center_y, radius, rgba):
+    radius_squared = radius**2
+    for y in range(max(0, center_y - radius), min(size, center_y + radius + 1)):
+        for x in range(max(0, center_x - radius), min(size, center_x + radius + 1)):
+            if (x - center_x) ** 2 + (y - center_y) ** 2 <= radius_squared:
+                paint_pixel(pixels, size, x, y, rgba)
+
+
+def draw_globe_mark(pixels, size, center_x, center_y, radius):
+    blue = color("#2f7de1")
+    white = color("#ffffff")
+    draw_circle(pixels, size, center_x, center_y, radius, blue)
+
+    stroke = max(2, size // 64)
+    radius_squared = radius**2
+    inner_radius = radius - stroke
+    inner_squared = inner_radius**2
+
+    for y in range(center_y - radius, center_y + radius + 1):
+        for x in range(center_x - radius, center_x + radius + 1):
+            distance = (x - center_x) ** 2 + (y - center_y) ** 2
+            inside = distance <= radius_squared
+            if not inside:
+                continue
+
+            on_outer_ring = distance >= inner_squared
+            on_vertical = abs(x - center_x) <= stroke
+            on_horizontal = abs(y - center_y) <= stroke
+            on_top_parallel = abs(y - (center_y - radius // 3)) <= stroke
+            on_bottom_parallel = abs(y - (center_y + radius // 3)) <= stroke
+
+            if on_outer_ring or on_vertical or on_horizontal or on_top_parallel or on_bottom_parallel:
+                paint_pixel(pixels, size, x, y, white)
+
+
+def png_chunk(name, payload):
+    chunk = name + payload
+    return (
+        struct.pack(">I", len(payload))
+        + chunk
+        + struct.pack(">I", zlib.crc32(chunk) & 0xFFFFFFFF)
+    )
+
+
+def write_png(path, size, pixels):
+    rows = []
+    stride = size * 4
+    for y in range(size):
+        rows.append(b"\x00" + bytes(pixels[y * stride : (y + 1) * stride]))
+
+    payload = b"".join(
+        [
+            b"\x89PNG\r\n\x1a\n",
+            png_chunk(b"IHDR", struct.pack(">IIBBBBB", size, size, 8, 6, 0, 0, 0)),
+            png_chunk(b"IDAT", zlib.compress(b"".join(rows), 9)),
+            png_chunk(b"IEND", b""),
+        ]
+    )
+    path.write_bytes(payload)
+
+
+def write_web_png_icon(path, size):
+    pixels = bytearray([0, 0, 0, 0] * size * size)
+    scale = size / 512
+    px = lambda value: int(round(value * scale))
+
+    draw_rounded_rect(pixels, size, 0, 0, size, size, px(96), color("#edf8ff"))
+    draw_rounded_rect(pixels, size, px(78), px(104), px(434), px(434), px(28), color("#cfeaff"))
+    draw_rect(pixels, size, px(104), px(132), px(408), px(408), color("#ffffff"))
+    draw_rect(pixels, size, px(128), px(166), px(384), px(194), color("#2f7de1"))
+    draw_rect(pixels, size, px(172), px(204), px(264), px(368), color("#f48aae"))
+    draw_rect(pixels, size, px(260), px(204), px(352), px(368), color("#a7d8f3"))
+    draw_rect(pixels, size, px(104), px(408), px(408), px(442), color("#58b7a8"))
+    draw_circle(pixels, size, px(218), px(292), px(10), color("#ffffff"))
+    draw_circle(pixels, size, px(306), px(292), px(10), color("#ffffff"))
+    draw_globe_mark(pixels, size, px(372), px(140), px(70))
+    write_png(path, size, pixels)
+
+
+def write_web_svg_icon(path):
+    path.write_text(
+        """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#edf8ff"/>
+  <path d="M78 104h356v330H78z" fill="#cfeaff"/>
+  <path d="M104 132h304v276H104z" fill="#fff"/>
+  <path d="M128 166h256v28H128z" fill="#2f7de1"/>
+  <path d="M172 204h92v164h-92z" fill="#f48aae"/>
+  <path d="M260 204h92v164h-92z" fill="#a7d8f3"/>
+  <path d="M104 408h304v34H104z" fill="#58b7a8"/>
+  <circle cx="218" cy="292" r="10" fill="#fff"/>
+  <circle cx="306" cy="292" r="10" fill="#fff"/>
+  <circle cx="372" cy="140" r="70" fill="#2f7de1"/>
+  <circle cx="372" cy="140" r="50" fill="none" stroke="#fff" stroke-width="12"/>
+  <path d="M302 140h140M372 70v140M322 118h100M322 162h100" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+</svg>
+""",
+        encoding="utf-8",
+    )
+
+
+def write_web_icons(icons_target):
+    icons_target.mkdir(parents=True, exist_ok=True)
+    write_web_svg_icon(icons_target / "web-icon.svg")
+    for size in WEB_ICON_SIZES:
+        write_web_png_icon(icons_target / f"web-icon-{size}.png", size)
+
+
 def static_runtime_config(generated_at):
     return {
         "mode": "static",
@@ -179,6 +328,8 @@ def write_static_service_worker(target_dir, build_id, copied_images, app_assets=
 
 def write_root_index(config):
     source = (PROJECT_PUBLIC_DIR / "index.html").read_text(encoding="utf-8")
+    source = source.replace('href="icons/icon.svg"', 'href="icons/web-icon.svg"')
+    source = source.replace('href="icons/icon-180.png"', 'href="icons/web-icon-180.png"')
     script = static_config_script(config)
     stylesheet = '    <link rel="stylesheet" href="styles.css" />'
     app_script = '    <script src="app.js" defer></script>'
@@ -197,6 +348,33 @@ def write_root_manifest():
     manifest = json.loads((PROJECT_PUBLIC_DIR / "manifest.webmanifest").read_text(encoding="utf-8"))
     manifest["start_url"] = "./"
     manifest["scope"] = "./"
+    manifest["short_name"] = "Armario Web"
+    manifest["icons"] = [
+        {
+            "src": "icons/web-icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any",
+        },
+        {
+            "src": "icons/web-icon-180.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "any",
+        },
+        {
+            "src": "icons/web-icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable",
+        },
+        {
+            "src": "icons/web-icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable",
+        },
+    ]
     write_json(BASE_DIR / "manifest.webmanifest", manifest)
 
 
@@ -207,7 +385,7 @@ def sync_root_assets():
     icons_target = BASE_DIR / "icons"
     if icons_target.exists():
         shutil.rmtree(icons_target)
-    shutil.copytree(PROJECT_PUBLIC_DIR / "icons", icons_target)
+    write_web_icons(icons_target)
 
 
 def write_root_pages_files():
@@ -221,10 +399,10 @@ def write_root_pages_files():
         "./styles.css",
         "./app-config.json",
         "./manifest.webmanifest",
-        "./icons/icon.svg",
-        "./icons/icon-180.png",
-        "./icons/icon-192.png",
-        "./icons/icon-512.png",
+        "./icons/web-icon.svg",
+        "./icons/web-icon-180.png",
+        "./icons/web-icon-192.png",
+        "./icons/web-icon-512.png",
     ]
 
     config = static_runtime_config(catalog["generatedAt"])
