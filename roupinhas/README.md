@@ -1,10 +1,10 @@
-# Projeto Roupinhas da Isabel
+# Projeto roupinhas da Isabel
 
 Este diretório organiza e classifica fotos das roupas da Isabel por tamanho. A classificação inicial do usuário serviu como base, mas a regra atual é criar novos tipos quando necessário e, ao mesmo tempo, manter agrupamentos práticos para contar estoque.
 
 ## Estado Atual
 
-- Pasta raiz: `/Users/mesquitahelio/Desktop/Isabel/MeuArmario/Roupinhas`
+- Pasta raiz: `/Users/mesquitahelio/Desktop/Isabel/MeuArmario/roupinhas`
 - Pastas de tamanho existentes agora:
   - `RN/`
   - `0-3/`

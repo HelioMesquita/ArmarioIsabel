@@ -14,7 +14,7 @@ import re
 
 BASE_DIR = Path(__file__).resolve().parent
 PUBLIC_DIR = BASE_DIR / "public"
-WARDROBE_DIR = Path(os.environ.get("WARDROBE_DIR", BASE_DIR.parent / "Roupinhas")).resolve()
+WARDROBE_DIR = Path(os.environ.get("WARDROBE_DIR", BASE_DIR.parent / "roupinhas")).resolve()
 PORT = int(os.environ.get("PORT", "8080"))
 
 IMAGE_EXTENSIONS = {
@@ -219,11 +219,16 @@ class ArmarioHandler(BaseHTTPRequestHandler):
                 ):
                     files = image_files(folder_path)
                     preview = folder_url(folder_path.name, files[0].name) if files else None
+                    hero_images = [
+                        {**image_payload(folder_path.name, file_path), "folder": folder_path.name}
+                        for file_path in files
+                    ]
                     folders.append(
                         {
                             "name": folder_path.name,
                             "count": len(files),
                             "preview": preview,
+                            "heroImages": hero_images,
                         }
                     )
             self.send_json({"folders": folders})

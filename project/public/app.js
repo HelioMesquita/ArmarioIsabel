@@ -14,7 +14,6 @@ const addPhotoControl = fileInput.closest(".add-button");
 const homePhotoCard = document.querySelector("#homePhotoCard");
 const homePhoto = document.querySelector("#homePhoto");
 const homePhotoLabel = document.querySelector("#homePhotoLabel");
-const installButton = document.querySelector("#installButton");
 const modeStatus = document.querySelector("#modeStatus");
 const reportView = document.querySelector("#reportView");
 const reportIntro = document.querySelector("#reportIntro");
@@ -35,9 +34,13 @@ const nextImage = document.querySelector("#nextImage");
 let currentFolder = "";
 let currentImages = [];
 let currentImageIndex = 0;
-let deferredInstallPrompt = null;
 let detailVisible = false;
 let catalogCache = null;
+let heroPhotoItems = [];
+let currentHeroPhotoIndex = -1;
+let heroPhotoTimer = null;
+const USED_STORAGE_KEY = "armario-isabel-used-v1";
+const HERO_PHOTO_ROTATION_MS = 6000;
 const DEFAULT_APP_CONFIG = {
   mode: "local",
   dataSource: "api",
@@ -52,6 +55,7 @@ const DEFAULT_APP_CONFIG = {
 
 const injectedAppConfig = window.ARMARIO_APP_CONFIG || {};
 let appConfig = mergeAppConfig(DEFAULT_APP_CONFIG, injectedAppConfig);
+let usedImages = loadUsedImages();
 
 function mergeAppConfig(baseConfig, nextConfig = {}) {
   return {
@@ -68,6 +72,36 @@ function formatCount(count) {
   if (count === 0) return "Nenhuma foto";
   if (count === 1) return "1 foto";
   return `${count} fotos`;
+}
+
+function loadUsedImages() {
+  try {
+    const payload = localStorage.getItem(USED_STORAGE_KEY);
+    const parsed = payload ? JSON.parse(payload) : {};
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function saveUsedImages() {
+  try {
+    localStorage.setItem(USED_STORAGE_KEY, JSON.stringify(usedImages));
+  } catch (error) {
+    uploadStatus.textContent = "Nao consegui salvar neste navegador.";
+  }
+}
+
+function imageUsageKey(image) {
+  return `${currentFolder}/${image.name}`;
+}
+
+function isImageUsed(image) {
+  return Boolean(usedImages[imageUsageKey(image)]);
+}
+
+function usedImageCount() {
+  return currentImages.filter((image) => isImageUsed(image)).length;
 }
 
 function setLoading(target, text) {
@@ -171,6 +205,10 @@ async function loadStaticFolders() {
     name: folder.name,
     count: folder.count,
     preview: folder.preview,
+    heroImages: (folder.images || []).map((image) => ({
+      ...image,
+      folder: folder.name,
+    })),
   }));
 }
 
@@ -182,44 +220,6 @@ async function loadStaticFolder(folderName) {
 function showReadOnlyMessage() {
   uploadStatus.textContent =
     "Versao online: edicoes ficam disponiveis apenas no app local do Docker.";
-}
-
-function isStandaloneMode() {
-  return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
-}
-
-function setupPwaInstall() {
-  if (!installButton || isStandaloneMode()) {
-    if (installButton) installButton.hidden = true;
-    return;
-  }
-
-  installButton.hidden = false;
-
-  window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-    installButton.hidden = false;
-  });
-
-  window.addEventListener("appinstalled", () => {
-    deferredInstallPrompt = null;
-    installButton.hidden = true;
-  });
-
-  installButton.addEventListener("click", async () => {
-    if (deferredInstallPrompt) {
-      deferredInstallPrompt.prompt();
-      const choice = await deferredInstallPrompt.userChoice;
-      deferredInstallPrompt = null;
-      if (choice.outcome === "accepted") installButton.hidden = true;
-      return;
-    }
-
-    alert(
-      "No celular, use o menu do navegador e escolha Adicionar a tela inicial. Para instalacao PWA completa pela rede local, use HTTPS ou localhost.",
-    );
-  });
 }
 
 function registerServiceWorker() {
@@ -239,6 +239,8 @@ async function loadFolders() {
     renderHomePhoto(folders);
     renderFolders(folders);
   } catch (error) {
+    stopHeroPhotoRotation();
+    homePhotoCard.hidden = true;
     folderGrid.innerHTML = `<div class="empty-state">${error.message}</div>`;
   }
 }
@@ -256,27 +258,80 @@ function showHome() {
 }
 
 function renderHomePhoto(folders) {
-  const folder = folders.find((item) => item.preview);
-  if (!folder) {
+  startHeroPhotoRotation(folders);
+}
+
+function buildHeroPhotoItems(folders) {
+  return folders.flatMap((folder) => {
+    if (Array.isArray(folder.heroImages) && folder.heroImages.length) {
+      return folder.heroImages
+        .filter((image) => image.url)
+        .map((image) => ({
+          url: image.url,
+          label: image.label || friendlyName(image.name || ""),
+          folder: image.folder || folder.name,
+          count: folder.count,
+        }));
+    }
+
+    return folder.preview
+      ? [
+          {
+            url: folder.preview,
+            label: folder.name,
+            folder: folder.name,
+            count: folder.count,
+          },
+        ]
+      : [];
+  });
+}
+
+function stopHeroPhotoRotation() {
+  if (!heroPhotoTimer) return;
+  clearInterval(heroPhotoTimer);
+  heroPhotoTimer = null;
+}
+
+function pickNextHeroPhoto() {
+  if (!heroPhotoItems.length) {
     homePhotoCard.hidden = true;
     return;
   }
 
+  let nextIndex = Math.floor(Math.random() * heroPhotoItems.length);
+  if (heroPhotoItems.length > 1 && nextIndex === currentHeroPhotoIndex) {
+    nextIndex = (nextIndex + 1) % heroPhotoItems.length;
+  }
+
+  currentHeroPhotoIndex = nextIndex;
+  const item = heroPhotoItems[nextIndex];
   homePhoto.onload = () => {
     homePhotoCard.hidden = false;
   };
   homePhoto.onerror = () => {
     homePhotoCard.hidden = true;
   };
-  homePhoto.alt = `Previa da pasta ${folder.name}`;
-  homePhoto.src = folder.preview;
-  homePhotoLabel.textContent = `${folder.name} - ${formatCount(folder.count)}`;
+  homePhoto.alt = `Roupinha da pasta ${item.folder}`;
+  homePhoto.src = item.url;
+  homePhotoLabel.textContent = `${item.folder} - ${item.label}`;
+}
+
+function startHeroPhotoRotation(folders) {
+  stopHeroPhotoRotation();
+  heroPhotoItems = buildHeroPhotoItems(folders);
+  currentHeroPhotoIndex = -1;
+  pickNextHeroPhoto();
+
+  if (heroPhotoItems.length > 1) {
+    heroPhotoTimer = window.setInterval(pickNextHeroPhoto, HERO_PHOTO_ROTATION_MS);
+  }
 }
 
 function renderFolders(folders) {
   if (!folders.length) {
     folderGrid.innerHTML =
-      '<div class="empty-state">Crie pastas dentro de Roupinhas para elas aparecerem aqui.</div>';
+      '<div class="empty-state">Crie pastas dentro de roupinhas para elas aparecerem aqui.</div>';
     return;
   }
 
@@ -302,6 +357,7 @@ function renderFolders(folders) {
 }
 
 async function openFolder(folderName, options = {}) {
+  stopHeroPhotoRotation();
   currentFolder = folderName;
   galleryTitle.textContent = folderName;
   galleryCount.textContent = "";
@@ -326,7 +382,7 @@ async function openFolder(folderName, options = {}) {
 }
 
 function renderImages() {
-  galleryCount.textContent = formatCount(currentImages.length);
+  galleryCount.textContent = `${formatCount(currentImages.length)} / ${usedImageCount()} usadas`;
   if (!currentImages.length) {
     imageGrid.innerHTML =
       '<div class="empty-state">Ainda nao tem foto nessa pastinha.</div>';
@@ -338,21 +394,33 @@ function renderImages() {
       (image, index) => {
         const label = escapeHtml(image.label || friendlyName(image.name));
         const url = escapeHtml(image.url);
+        const used = isImageUsed(image);
+        const usageLabel = used ? "Ja usou" : "Ainda nao usou";
         return `
-        <article class="image-card">
+        <article class="image-card ${used ? "image-card-used" : ""}">
           <button class="image-photo-button" type="button" data-index="${index}">
             <img src="${url}" alt="${label}" loading="lazy" />
+            ${used ? '<strong class="used-badge">Ja usou</strong>' : ""}
             <span>${label}</span>
           </button>
-          ${
-            canRename()
-              ? `<div class="card-actions">
+          <div class="card-actions">
+            <button
+              class="used-button ${used ? "is-used" : ""}"
+              type="button"
+              data-used-index="${index}"
+              aria-pressed="${used ? "true" : "false"}"
+            >
+              ${usageLabel}
+            </button>
+            ${
+              canRename()
+                ? `
                   <button class="rename-button" type="button" data-rename-index="${index}">
                     Renomear
-                  </button>
-                </div>`
-              : ""
-          }
+                  </button>`
+                : ""
+            }
+          </div>
         </article>
       `;
       },
@@ -362,6 +430,21 @@ function renderImages() {
 
 function backHome() {
   showHome();
+}
+
+function toggleUsedImage(index) {
+  const image = currentImages[index];
+  if (!image) return;
+
+  const key = imageUsageKey(image);
+  if (usedImages[key]) {
+    delete usedImages[key];
+  } else {
+    usedImages[key] = new Date().toISOString();
+  }
+
+  saveUsedImages();
+  renderImages();
 }
 
 async function uploadSelectedFile() {
@@ -391,6 +474,7 @@ async function uploadSelectedFile() {
 }
 
 async function openReport() {
+  stopHeroPhotoRotation();
   currentFolder = "";
   currentImages = [];
   detailVisible = false;
@@ -583,6 +667,12 @@ folderGrid.addEventListener("click", (event) => {
 });
 
 imageGrid.addEventListener("click", (event) => {
+  const usedButton = event.target.closest("[data-used-index]");
+  if (usedButton) {
+    toggleUsedImage(Number(usedButton.dataset.usedIndex));
+    return;
+  }
+
   const renameButton = event.target.closest("[data-rename-index]");
   if (renameButton) {
     renameImage(Number(renameButton.dataset.renameIndex));
@@ -630,6 +720,5 @@ async function startApp() {
   if (initialHash) openFolder(initialHash);
 }
 
-setupPwaInstall();
 registerServiceWorker();
 startApp();

@@ -7,9 +7,9 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ../Roupinhas:/app/Roupinhas
+      - ../roupinhas:/app/roupinhas
     environment:
       PORT: "8080"
-      WARDROBE_DIR: /app/Roupinhas
+      WARDROBE_DIR: /app/roupinhas
       TZ: America/Sao_Paulo
     restart: unless-stopped

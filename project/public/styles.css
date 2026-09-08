@@ -283,7 +283,7 @@ h2 {
 
 .soft-button,
 .add-button,
-.install-button,
+.primary-button,
 .ghost-button,
 .close-button {
   border: 1px solid rgba(197, 78, 120, 0.22);
@@ -312,15 +312,10 @@ h2 {
   margin-top: 24px;
 }
 
-.install-button {
+.primary-button {
   padding: 0 18px;
   background: #3b2f35;
   color: #fff;
-}
-
-.secondary-action {
-  background: #fff;
-  color: var(--ink);
 }
 
 .add-button {
@@ -349,7 +344,7 @@ body[data-app-mode="static"] .upload-control {
 
 .soft-button:hover,
 .add-button:hover,
-.install-button:hover,
+.primary-button:hover,
 .ghost-button:hover,
 .close-button:hover {
   transform: translateY(-1px);
@@ -442,6 +437,11 @@ body[data-app-mode="static"] .upload-control {
   text-align: left;
 }
 
+.image-card-used {
+  border-color: rgba(47, 118, 108, 0.42);
+  background: #f7fffc;
+}
+
 .image-photo-button {
   display: block;
   width: 100%;
@@ -450,6 +450,7 @@ body[data-app-mode="static"] .upload-control {
   border: 0;
   background: transparent;
   color: inherit;
+  position: relative;
   text-align: left;
 }
 
@@ -470,11 +471,30 @@ body[data-app-mode="static"] .upload-control {
   line-height: 1.25;
 }
 
+.used-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  max-width: calc(100% - 20px);
+  padding: 7px 9px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(47, 118, 108, 0.92);
+  color: #fff;
+  font-size: 0.76rem;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 10px 20px rgba(47, 118, 108, 0.2);
+}
+
 .card-actions {
   display: flex;
+  gap: 8px;
   padding: 0 10px 10px;
 }
 
+.used-button,
 .rename-button {
   width: 100%;
   min-height: 38px;
@@ -486,6 +506,19 @@ body[data-app-mode="static"] .upload-control {
   font-weight: 900;
 }
 
+.used-button {
+  border-color: rgba(197, 78, 120, 0.28);
+  background: #fff4f8;
+  color: var(--strawberry-dark);
+}
+
+.used-button.is-used {
+  border-color: rgba(47, 118, 108, 0.5);
+  background: #e6faf4;
+  color: #2f766c;
+}
+
+.used-button:hover,
 .rename-button:hover {
   border-color: rgba(47, 118, 108, 0.5);
 }
@@ -706,7 +739,7 @@ td {
   }
 
   .soft-button,
-  .install-button,
+  .primary-button,
   .add-button {
     width: 100%;
   }

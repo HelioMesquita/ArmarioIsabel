@@ -14,7 +14,7 @@ import zlib
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 PROJECT_PUBLIC_DIR = BASE_DIR / "project" / "public"
-WARDROBE_DIR = Path(os.environ.get("WARDROBE_DIR", BASE_DIR / "Roupinhas")).resolve()
+WARDROBE_DIR = Path(os.environ.get("WARDROBE_DIR", BASE_DIR / "roupinhas")).resolve()
 
 IMAGE_EXTENSIONS = {
     ".avif",
@@ -389,7 +389,7 @@ def sync_root_assets():
 
 
 def write_root_pages_files():
-    catalog, image_paths = build_catalog("Roupinhas")
+    catalog, image_paths = build_catalog("roupinhas")
     catalog_json = json.dumps(catalog, ensure_ascii=False, sort_keys=True)
     build_id = hashlib.sha256(catalog_json.encode("utf-8")).hexdigest()[:12]
     app_assets = [

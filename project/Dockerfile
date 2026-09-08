@@ -3,7 +3,7 @@ FROM python:3.12-slim
 WORKDIR /app
 
 ENV PORT=8080
-ENV WARDROBE_DIR=/app/Roupinhas
+ENV WARDROBE_DIR=/app/roupinhas
 ENV TZ=America/Sao_Paulo
 ENV PYTHONUNBUFFERED=1
 
