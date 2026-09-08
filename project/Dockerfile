@@ -7,8 +7,8 @@ ENV WARDROBE_DIR=/app/Roupinhas
 ENV TZ=America/Sao_Paulo
 ENV PYTHONUNBUFFERED=1
 
-COPY server.py /app/server.py
-COPY public /app/public
+COPY project/server.py /app/server.py
+COPY project/public /app/public
 
 EXPOSE 8080
 

@@ -38,13 +38,31 @@ let currentImageIndex = 0;
 let deferredInstallPrompt = null;
 let detailVisible = false;
 let catalogCache = null;
-let appConfig = {
+const DEFAULT_APP_CONFIG = {
   mode: "local",
   dataSource: "api",
   readOnly: false,
   apiBaseUrl: "",
   catalogUrl: "catalog.json",
+  features: {
+    upload: true,
+    rename: true,
+  },
 };
+
+const injectedAppConfig = window.ARMARIO_APP_CONFIG || {};
+let appConfig = mergeAppConfig(DEFAULT_APP_CONFIG, injectedAppConfig);
+
+function mergeAppConfig(baseConfig, nextConfig = {}) {
+  return {
+    ...baseConfig,
+    ...nextConfig,
+    features: {
+      ...(baseConfig.features || {}),
+      ...(nextConfig.features || {}),
+    },
+  };
+}
 
 function formatCount(count) {
   if (count === 0) return "Nenhuma foto";
@@ -85,15 +103,24 @@ function isReadOnlyMode() {
   return Boolean(appConfig.readOnly) || isStaticMode();
 }
 
+function canUpload() {
+  return !isReadOnlyMode() && appConfig.features.upload !== false;
+}
+
+function canRename() {
+  return !isReadOnlyMode() && appConfig.features.rename !== false;
+}
+
 function apiUrl(path) {
   return `${appConfig.apiBaseUrl || ""}${path}`;
 }
 
 function applyAppMode() {
   document.body.dataset.appMode = appConfig.mode || "local";
+  document.documentElement.dataset.armarioMode = appConfig.mode || "local";
 
   if (addPhotoControl) {
-    addPhotoControl.hidden = isReadOnlyMode();
+    addPhotoControl.hidden = !canUpload();
   }
 
   if (!modeStatus) return;
@@ -111,9 +138,9 @@ async function loadAppConfig() {
     const response = await fetch(assetUrl("app-config.json"));
     if (!response.ok) return;
     const config = await response.json();
-    appConfig = { ...appConfig, ...config };
+    appConfig = mergeAppConfig(appConfig, config);
   } catch (error) {
-    appConfig = { ...appConfig, mode: "local", dataSource: "api", readOnly: false };
+    appConfig = mergeAppConfig(appConfig, injectedAppConfig);
   } finally {
     applyAppMode();
   }
@@ -318,13 +345,13 @@ function renderImages() {
             <span>${label}</span>
           </button>
           ${
-            isReadOnlyMode()
-              ? ""
-              : `<div class="card-actions">
+            canRename()
+              ? `<div class="card-actions">
                   <button class="rename-button" type="button" data-rename-index="${index}">
                     Renomear
                   </button>
                 </div>`
+              : ""
           }
         </article>
       `;
@@ -340,7 +367,7 @@ function backHome() {
 async function uploadSelectedFile() {
   const file = fileInput.files[0];
   if (!file || !currentFolder) return;
-  if (isReadOnlyMode()) {
+  if (!canUpload()) {
     fileInput.value = "";
     showReadOnlyMessage();
     return;
@@ -490,7 +517,7 @@ function renderReport(report) {
 async function renameImage(index) {
   const image = currentImages[index];
   if (!image || !currentFolder) return;
-  if (isReadOnlyMode()) {
+  if (!canRename()) {
     showReadOnlyMessage();
     return;
   }

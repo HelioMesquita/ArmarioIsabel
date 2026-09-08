@@ -14,7 +14,7 @@ import re
 
 BASE_DIR = Path(__file__).resolve().parent
 PUBLIC_DIR = BASE_DIR / "public"
-WARDROBE_DIR = Path(os.environ.get("WARDROBE_DIR", BASE_DIR / "Roupinhas")).resolve()
+WARDROBE_DIR = Path(os.environ.get("WARDROBE_DIR", BASE_DIR.parent / "Roupinhas")).resolve()
 PORT = int(os.environ.get("PORT", "8080"))
 
 IMAGE_EXTENSIONS = {

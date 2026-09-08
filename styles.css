@@ -342,6 +342,11 @@ h2 {
   pointer-events: none;
 }
 
+html[data-armario-mode="static"] .upload-control,
+body[data-app-mode="static"] .upload-control {
+  display: none;
+}
+
 .soft-button:hover,
 .add-button:hover,
 .install-button:hover,

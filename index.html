@@ -6,7 +6,7 @@
     <title>O Armario da Isabel</title>
     <meta
       name="description"
-      content="Um armario local para ver e adicionar as roupinhas da Isabel."
+      content="Um armario para ver e organizar as roupinhas da Isabel."
     />
     <meta name="theme-color" content="#f48aae" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -14,9 +14,24 @@
     <meta name="apple-mobile-web-app-title" content="O Armario da Isabel" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="icon" href="public/icons/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="public/icons/icon-180.png" />
-    <link rel="stylesheet" href="public/styles.css" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon-180.png" />
+    <script>
+      window.ARMARIO_APP_CONFIG = {
+        "mode": "static",
+        "dataSource": "catalog",
+        "readOnly": true,
+        "apiBaseUrl": "",
+        "catalogUrl": "catalog.json",
+        "generatedAt": "2026-09-08T02:45:04.331555+00:00",
+        "features": {
+          "upload": false,
+          "rename": false
+        }
+      };
+      document.documentElement.dataset.armarioMode = "static";
+    </script>
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="app-shell">
@@ -25,8 +40,8 @@
           <p class="eyebrow">Roupinhas organizadas com carinho</p>
           <h1>O Armario da Isabel</h1>
           <p class="hero-text">
-            Escolha uma pastinha para passear pelas fotos, abrir cada detalhe e
-            adicionar novas pecas direto daqui.
+            Escolha uma pastinha para passear pelas fotos e abrir cada detalhe
+            com calma.
           </p>
           <div class="hero-actions">
             <button id="reportButton" class="install-button" type="button">
@@ -82,7 +97,7 @@
               <h2 id="galleryTitle"></h2>
               <p id="galleryCount" class="muted"></p>
             </div>
-            <label class="add-button">
+            <label class="add-button upload-control">
               Adicionar foto
               <input id="fileInput" type="file" accept="image/*" />
             </label>
@@ -162,6 +177,6 @@
       <img id="lightboxImage" alt="" />
     </div>
 
-    <script src="public/app.js" defer></script>
+    <script src="app.js" defer></script>
   </body>
 </html>

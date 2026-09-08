@@ -1,7 +1,0 @@
-{
-  "mode": "local",
-  "dataSource": "api",
-  "readOnly": false,
-  "apiBaseUrl": "",
-  "catalogUrl": "catalog.json"
-}

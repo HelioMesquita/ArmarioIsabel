@@ -1,7 +1,7 @@
 {
   "name": "O Armario da Isabel",
   "short_name": "Armario Isabel",
-  "description": "Um armario local para ver e adicionar as roupinhas da Isabel.",
+  "description": "Um armario para ver e organizar as roupinhas da Isabel.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

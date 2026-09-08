@@ -1,11 +1,13 @@
 services:
   armario-isabel:
-    build: .
+    build:
+      context: ..
+      dockerfile: project/Dockerfile
     container_name: armario-isabel
     ports:
       - "8080:8080"
     volumes:
-      - ./Roupinhas:/app/Roupinhas
+      - ../Roupinhas:/app/Roupinhas
     environment:
       PORT: "8080"
       WARDROBE_DIR: /app/Roupinhas

@@ -1,0 +1,11 @@
+{
+  "mode": "local",
+  "dataSource": "api",
+  "readOnly": false,
+  "apiBaseUrl": "",
+  "catalogUrl": "catalog.json",
+  "features": {
+    "upload": true,
+    "rename": true
+  }
+}

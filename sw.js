@@ -1,15 +1,15 @@
-self.ARMARIO_CACHE_NAME = "armario-isabel-static-a36a3b82d77d";
+self.ARMARIO_CACHE_NAME = "armario-isabel-static-133b87d7585b";
 self.ARMARIO_APP_ASSETS = [
   "./",
   "./index.html",
-  "./public/app.js",
-  "./public/styles.css",
+  "./app.js",
+  "./styles.css",
   "./app-config.json",
   "./manifest.webmanifest",
-  "./public/icons/icon.svg",
-  "./public/icons/icon-180.png",
-  "./public/icons/icon-192.png",
-  "./public/icons/icon-512.png"
+  "./icons/icon.svg",
+  "./icons/icon-180.png",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 self.ARMARIO_EXTRA_PRECACHE = [
   "./catalog.json"
