@@ -1,4 +1,4 @@
-self.ARMARIO_CACHE_NAME = "armario-isabel-static-2403ed54fd03";
+self.ARMARIO_CACHE_NAME = "armario-isabel-static-c814712a8f2b";
 self.ARMARIO_APP_ASSETS = [
   "./",
   "./index.html",

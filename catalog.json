@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-08T14:05:41.749224+00:00",
+  "generatedAt": "2026-09-11T14:42:24.874897+00:00",
   "folders": [
     {
       "name": "0-3",
@@ -625,7 +625,7 @@
     },
     {
       "name": "RN",
-      "count": 36,
+      "count": 39,
       "preview": "roupinhas/RN/2026-09-07_19-08-00-574196_image.jpg",
       "images": [
         {
@@ -639,6 +639,24 @@
           "label": "2026-09-07 19-08-33-267026 image",
           "url": "roupinhas/RN/2026-09-07_19-08-33-267026_image.jpg",
           "modified": 1788818913
+        },
+        {
+          "name": "2026-09-10_20-08-34-818874_image.jpg",
+          "label": "2026-09-10 20-08-34-818874 image",
+          "url": "roupinhas/RN/2026-09-10_20-08-34-818874_image.jpg",
+          "modified": 1789081714
+        },
+        {
+          "name": "2026-09-10_20-08-52-217426_image.jpg",
+          "label": "2026-09-10 20-08-52-217426 image",
+          "url": "roupinhas/RN/2026-09-10_20-08-52-217426_image.jpg",
+          "modified": 1789081732
+        },
+        {
+          "name": "2026-09-10_20-09-01-453835_image.jpg",
+          "label": "2026-09-10 20-09-01-453835 image",
+          "url": "roupinhas/RN/2026-09-10_20-09-01-453835_image.jpg",
+          "modified": 1789081741
         },
         {
           "name": "Body_Manga_Curta_Básico_Liso_Branco_01.jpeg",
@@ -848,7 +866,7 @@
     },
     {
       "name": "Sem Idade",
-      "count": 28,
+      "count": 29,
       "preview": "roupinhas/Sem%20Idade/Acess%C3%B3rio_Faixa_de_Cabelo_com_La%C3%A7o_e_Flor_Rosa.jpeg",
       "images": [
         {
@@ -1018,13 +1036,19 @@
           "label": "Sono Enxoval Saco de Dormir Swaddle 0 3 Meses Rosa",
           "url": "roupinhas/Sem%20Idade/Sono_Enxoval_Saco_de_Dormir_Swaddle_0_3_Meses_Rosa.jpeg",
           "modified": 1784522679
+        },
+        {
+          "name": "Toca_e_luva.jpg",
+          "label": "Toca e luva",
+          "url": "roupinhas/Sem%20Idade/Toca_e_luva.jpg",
+          "modified": 1788963361
         }
       ]
     }
   ],
   "report": {
     "totals": {
-      "images": 163,
+      "images": 167,
       "classified": 160,
       "folders": 6,
       "groups": 12

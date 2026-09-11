@@ -60,6 +60,23 @@ git push
 
 O atalho antigo `python3 scripts/export_static.py` continua funcionando.
 
+## Publicar Foto Nova
+
+Depois de adicionar uma ou mais fotos dentro de `roupinhas/`, rode:
+
+```bash
+python3 scripts/publish_new_photos.py
+```
+
+Esse comando detecta imagens novas ou alteradas, regenera a versao estatica,
+faz o commit com a mensagem `nova foto adicionada` e executa `git push`.
+
+Para commitar sem subir:
+
+```bash
+python3 scripts/publish_new_photos.py --no-push
+```
+
 ## Estrutura
 
 ```text
