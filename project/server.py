@@ -10,12 +10,27 @@ import json
 import mimetypes
 import os
 import re
+import shlex
+import subprocess
+import sys
+import threading
 
 
 BASE_DIR = Path(__file__).resolve().parent
 PUBLIC_DIR = BASE_DIR / "public"
 WARDROBE_DIR = Path(os.environ.get("WARDROBE_DIR", BASE_DIR.parent / "roupinhas")).resolve()
 PORT = int(os.environ.get("PORT", "8080"))
+REPO_DIR = Path(os.environ.get("ARMARIO_REPO_DIR", BASE_DIR.parent)).resolve()
+AUTO_PUBLISH_AFTER_UPLOAD = os.environ.get("ARMARIO_AUTO_PUBLISH_AFTER_UPLOAD", "1").lower() not in {
+    "0",
+    "false",
+    "nao",
+    "não",
+    "no",
+    "off",
+}
+PUBLISH_COMMAND = os.environ.get("ARMARIO_PUBLISH_COMMAND", "").strip()
+PUBLISH_LOCK = threading.Lock()
 
 IMAGE_EXTENSIONS = {
     ".avif",
@@ -156,6 +171,67 @@ def unique_path(folder_path, filename):
         if not candidate.exists():
             return candidate
         counter += 1
+
+
+def publish_command():
+    if PUBLISH_COMMAND:
+        return shlex.split(PUBLISH_COMMAND)
+
+    script_path = REPO_DIR / "scripts" / "publish_new_photos.py"
+    if script_path.exists():
+        return [sys.executable, str(script_path)]
+
+    return None
+
+
+def output_tail(output, max_lines=12):
+    lines = [line for line in output.strip().splitlines() if line.strip()]
+    return "\n".join(lines[-max_lines:])
+
+
+def publish_after_upload():
+    if not AUTO_PUBLISH_AFTER_UPLOAD:
+        return {"status": "disabled"}
+
+    if not (REPO_DIR / ".git").exists():
+        message = "Repositorio Git nao encontrado para publicacao automatica."
+        print(message, flush=True)
+        return {"status": "skipped", "message": message}
+
+    command = publish_command()
+    if not command:
+        message = "Script de publicacao nao encontrado."
+        print(message, flush=True)
+        return {"status": "skipped", "message": message}
+
+    with PUBLISH_LOCK:
+        print("Publicando foto nova automaticamente...", flush=True)
+        result = subprocess.run(
+            command,
+            cwd=REPO_DIR,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+
+    output = result.stdout or ""
+    if output.strip():
+        print(output, flush=True)
+
+    if result.returncode != 0:
+        message = "Foto salva, mas a publicacao automatica falhou."
+        print(message, flush=True)
+        return {
+            "status": "failed",
+            "message": message,
+            "output": output_tail(output),
+        }
+
+    return {
+        "status": "done",
+        "message": "Foto publicada automaticamente.",
+        "output": output_tail(output),
+    }
 
 
 class ArmarioHandler(BaseHTTPRequestHandler):
@@ -338,11 +414,13 @@ class ArmarioHandler(BaseHTTPRequestHandler):
 
         target = unique_path(folder_path, filename)
         target.write_bytes(data)
+        publish = publish_after_upload()
 
         self.send_json(
             {
                 "folder": folder,
                 "image": image_payload(folder, target),
+                "publish": publish,
             },
             status=201,
         )
@@ -394,6 +472,10 @@ def main():
     server = ThreadingHTTPServer(("0.0.0.0", PORT), ArmarioHandler)
     print(f"O Armario da Isabel aberto em http://0.0.0.0:{PORT}")
     print(f"Lendo as roupinhas de: {WARDROBE_DIR}")
+    if AUTO_PUBLISH_AFTER_UPLOAD:
+        print(f"Publicacao automatica ligada em: {REPO_DIR}")
+    else:
+        print("Publicacao automatica desligada.")
     server.serve_forever()
 
 

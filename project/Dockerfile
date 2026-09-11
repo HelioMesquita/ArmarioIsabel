@@ -7,9 +7,14 @@ ENV WARDROBE_DIR=/app/roupinhas
 ENV TZ=America/Sao_Paulo
 ENV PYTHONUNBUFFERED=1
 
-COPY project/server.py /app/server.py
-COPY project/public /app/public
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY project/server.py /app/project/server.py
+COPY project/public /app/project/public
+COPY scripts /app/scripts
 
 EXPOSE 8080
 
-CMD ["python", "server.py"]
+CMD ["python", "project/server.py"]

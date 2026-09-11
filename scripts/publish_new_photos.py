@@ -31,6 +31,10 @@ GENERATED_PATHS = [
 ]
 
 
+def git_command(arguments):
+    return ["git", "-c", f"safe.directory={BASE_DIR}", *arguments]
+
+
 def run(command):
     result = subprocess.run(command, cwd=BASE_DIR)
     if result.returncode != 0:
@@ -39,7 +43,7 @@ def run(command):
 
 def git_null_paths(arguments):
     result = subprocess.run(
-        ["git", *arguments],
+        git_command(arguments),
         cwd=BASE_DIR,
         stdout=subprocess.PIPE,
         check=True,
@@ -73,7 +77,7 @@ def changed_image_paths():
 
 def has_staged_changes(paths):
     result = subprocess.run(
-        ["git", "diff", "--cached", "--quiet", "--", *paths],
+        git_command(["diff", "--cached", "--quiet", "--", *paths]),
         cwd=BASE_DIR,
     )
     if result.returncode == 0:
@@ -116,19 +120,19 @@ def main():
     run([sys.executable, "scripts/publish_static.py"])
 
     paths_to_commit = sorted(set(image_paths + GENERATED_PATHS))
-    run(["git", "add", "--", *paths_to_commit])
+    run(git_command(["add", "--", *paths_to_commit]))
 
     if not has_staged_changes(paths_to_commit):
         print("Nada mudou depois de gerar a versao estatica. Commit cancelado.")
         return
 
-    run(["git", "commit", "-m", args.message, "--", *paths_to_commit])
+    run(git_command(["commit", "-m", args.message, "--", *paths_to_commit]))
 
     if args.no_push:
         print("Commit criado. Push pulado por causa de --no-push.")
         return
 
-    run(["git", "push"])
+    run(git_command(["push"]))
     print("Foto publicada, commit criado e push concluido.")
 
 

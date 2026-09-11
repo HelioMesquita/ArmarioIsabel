@@ -461,11 +461,18 @@ async function uploadSelectedFile() {
   formData.append("image", file);
 
   try {
-    await requestApiJson(`/api/folders/${encodeURIComponent(currentFolder)}/upload`, {
+    const payload = await requestApiJson(`/api/folders/${encodeURIComponent(currentFolder)}/upload`, {
       method: "POST",
       body: formData,
     });
-    uploadStatus.textContent = "Foto adicionada.";
+    const publishStatus = payload.publish?.status;
+    if (publishStatus === "done") {
+      uploadStatus.textContent = "Foto adicionada e publicada.";
+    } else if (publishStatus === "failed" || publishStatus === "skipped") {
+      uploadStatus.textContent = "Foto adicionada, mas nao consegui publicar automaticamente.";
+    } else {
+      uploadStatus.textContent = "Foto adicionada.";
+    }
     fileInput.value = "";
     await openFolder(currentFolder, { preserveStatus: true });
   } catch (error) {

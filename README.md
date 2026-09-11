@@ -23,6 +23,17 @@ http://localhost:8080
 http://SEU-IP:8080
 ```
 
+Quando uma foto for enviada pelo app local, o servidor salva a imagem, roda a
+publicacao estatica, cria o commit `nova foto adicionada` e executa `git push`
+automaticamente.
+
+Se o push via Docker nao autenticar, garanta que sua chave esteja carregada no
+agente SSH do Mac antes de subir o app:
+
+```bash
+ssh-add ~/.ssh/id_ed25519
+```
+
 ## Gerar Online
 
 ```bash
@@ -60,9 +71,10 @@ git push
 
 O atalho antigo `python3 scripts/export_static.py` continua funcionando.
 
-## Publicar Foto Nova
+## Publicar Foto Nova Manualmente
 
-Depois de adicionar uma ou mais fotos dentro de `roupinhas/`, rode:
+Se voce colocar uma ou mais fotos direto dentro de `roupinhas/`, sem passar pelo
+upload do app local, rode:
 
 ```bash
 python3 scripts/publish_new_photos.py

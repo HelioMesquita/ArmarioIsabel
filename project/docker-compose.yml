@@ -4,12 +4,22 @@ services:
       context: ..
       dockerfile: project/Dockerfile
     container_name: armario-isabel
+    user: "${UID:-501}:${GID:-20}"
     ports:
       - "8080:8080"
     volumes:
-      - ../roupinhas:/app/roupinhas
+      - ..:/app
+      - ${SSH_AUTH_SOCK}:/ssh-agent
     environment:
       PORT: "8080"
       WARDROBE_DIR: /app/roupinhas
+      ARMARIO_REPO_DIR: /app
+      ARMARIO_AUTO_PUBLISH_AFTER_UPLOAD: "1"
+      SSH_AUTH_SOCK: /ssh-agent
+      GIT_SSH_COMMAND: ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/tmp/known_hosts
+      GIT_AUTHOR_NAME: "${GIT_AUTHOR_NAME:-Helio Mesquita}"
+      GIT_AUTHOR_EMAIL: "${GIT_AUTHOR_EMAIL:-helio.mesquitaios@gmail.com}"
+      GIT_COMMITTER_NAME: "${GIT_COMMITTER_NAME:-Helio Mesquita}"
+      GIT_COMMITTER_EMAIL: "${GIT_COMMITTER_EMAIL:-helio.mesquitaios@gmail.com}"
       TZ: America/Sao_Paulo
     restart: unless-stopped
